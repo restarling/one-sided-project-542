@@ -59,6 +59,7 @@ void osc_communicate_fence(int send_proc, int recv_proc, int tag,
     }
     MPI_Win_fence(0, win);
     MPI_Win_free(&win);
+    MPI_Comm_free(&comm);
 }	//endsus
 
 
