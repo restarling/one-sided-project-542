@@ -85,7 +85,9 @@ void nonblocking_communicate(int send_proc, int recv_proc, int tag,
 
 void osc_communicate_fence(int send_proc, int size, float* sendbuf, MPI_Win win) {
 
+	MPI_Win_fence(0, win);
     MPI_Put(sendbuf, size, MPI_FLOAT, send_proc, 0, size, MPI_FLOAT, win);
+    MPI_Win_fence(0, win);
 }
 
 void osc_communicate_pscw(int send_proc, int size, 
@@ -95,8 +97,8 @@ void osc_communicate_pscw(int send_proc, int size,
 	//if (rank == send_proc) memcpy(??? -> ???)
 	MPI_Win_post(group, 0, win);
 	MPI_Win_start(group, 0, win);
-    MPI_Win_complete(win);
     MPI_Put(sendbuf, size, MPI_FLOAT, send_proc, 0, size, MPI_FLOAT, win);
+    MPI_Win_complete(win);
 	MPI_Win_wait(win);
 }
 
@@ -175,12 +177,8 @@ void osc_cannon_fence(float* A, float* B, float* C, int n, int sq_num_procs, int
     // Initial Shift : 
     get_init_procs(rank_row, rank_col, sq_num_procs,
             &send_proc_A, &send_proc_B, &recv_proc_A, &recv_proc_B);
-	MPI_Win_fence(0, win_col);
-	MPI_Win_fence(0, win_row);
     osc_communicate_fence(send_proc_A, size, A, win_row);
     osc_communicate_fence(send_proc_B, size, B, win_col);
-	MPI_Win_fence(0, win_col);
-	MPI_Win_fence(0, win_row);
     matmat(n, recv_A, recv_B, C);
 
     // Send and recv A and B from neighborhing processes in proc grid
@@ -189,13 +187,9 @@ void osc_cannon_fence(float* A, float* B, float* C, int n, int sq_num_procs, int
     for (int i = 1; i < sq_num_procs; i++)
     {
         swap(&send_A, &recv_A, &send_B, &recv_B);
-		MPI_Win_fence(0, win_row);
-		MPI_Win_fence(0, win_col);
-        osc_communicate_fence(send_proc_A, size, send_A, win_row);
+		osc_communicate_fence(send_proc_A, size, send_A, win_row);
         osc_communicate_fence(send_proc_B, size, send_B, win_col);
-		MPI_Win_fence(0, win_row);
-		MPI_Win_fence(0, win_col);
-        matmat(n, recv_A, recv_B, C);
+		matmat(n, recv_A, recv_B, C);
     }
 
     delete[] send_A;
@@ -275,7 +269,7 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
-    int N = 128;
+    int N = 256;
     int sq_num_procs = sqrt(num_procs);
     int rank_row = rank / sq_num_procs;
     int rank_col = rank % sq_num_procs;
@@ -296,11 +290,20 @@ int main(int argc, char* argv[]) {
 	
 	double starttime, endtime;
 	
-	/*if (rank == 0) starttime = MPI_Wtime();
+	starttime = MPI_Wtime();
 	nonblocking_cannon(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
-	if (rank == 0) endtime = MPI_Wtime();
+	endtime = MPI_Wtime();
 	if (rank == 0) printf("nonblocking cannon time: %f\n", endtime-starttime);
-	*/
+		
+	starttime = MPI_Wtime();
+	osc_cannon_fence(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
+	endtime = MPI_Wtime();
+	if (rank == 0) printf("one-sided cannon time (fence): %f\n", endtime-starttime);
+		
+	starttime = MPI_Wtime();
+	osc_cannon_pscw(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
+	endtime = MPI_Wtime();
+	if (rank == 0) printf("one-sided cannon time (pscw): %f\n", endtime-starttime);
 	
 	/*double global_sum = 0;
 	double local_sum = 0;
@@ -311,17 +314,6 @@ int main(int argc, char* argv[]) {
 	MPI_Reduce(&local_sum, &global_sum, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
 	if (rank == 0) printf("sum: %f\n", global_sum);
 	*/
-	
-	/*if (rank == 0) starttime = MPI_Wtime();
-	osc_cannon_fence(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
-	if (rank == 0) endtime = MPI_Wtime();
-	if (rank == 0) printf("one-sided cannon time (fence): %f\n", endtime-starttime);
-	*/
-	
-	//if (rank == 0) starttime = MPI_Wtime();
-	osc_cannon_pscw(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
-	//if (rank == 0) endtime = MPI_Wtime();
-	//if (rank == 0) printf("one-sided cannon time (pscw): %f\n", endtime-starttime);
 	
    	delete[] h_A;
    	delete[] h_B;
