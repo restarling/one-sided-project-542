@@ -93,8 +93,6 @@ void osc_communicate_fence(int send_proc, int size, float* sendbuf, MPI_Win win)
 void osc_communicate_pscw(int send_proc, int size, 
 	float* sendbuf, MPI_Comm comm, MPI_Win win, MPI_Group group) {
 
-	// how do you handle sending to itself
-	//if (rank == send_proc) memcpy(??? -> ???)
 	MPI_Win_post(group, 0, win);
 	MPI_Win_start(group, 0, win);
     MPI_Put(sendbuf, size, MPI_FLOAT, send_proc, 0, size, MPI_FLOAT, win);
@@ -103,8 +101,8 @@ void osc_communicate_pscw(int send_proc, int size,
 }
 
 void nonblocking_cannon(float* A, float* B, float* C,
-        int n, int sq_num_procs, int rank_row, int rank_col)
-{
+        int n, int sq_num_procs, int rank_row, int rank_col) {
+
     int rank, num_procs;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
@@ -216,8 +214,6 @@ void osc_cannon_pscw(float* A, float* B, float* C,
 
     int send_proc_A, send_proc_B;
     int recv_proc_A, recv_proc_B;
-    int tag_a = 1234;
-    int tag_b = 4321;
 
     memset(C, 0, size*sizeof(float));
 
@@ -234,7 +230,6 @@ void osc_cannon_pscw(float* A, float* B, float* C,
     // Initial Shift : 
     get_init_procs(rank_row, rank_col, sq_num_procs, 
     	&send_proc_A, &send_proc_B, &recv_proc_A, &recv_proc_B);
-	//printf("afintshft: rank %d, send_proc_A %d, send_proc_B %d\n", rank, send_proc_A, send_proc_B);
     osc_communicate_pscw(send_proc_A, size, A, comm_row, win_row, group_row);
     osc_communicate_pscw(send_proc_B, size, B, comm_col, win_col, group_col);
     matmat(n, recv_A, recv_B, C);
@@ -242,7 +237,6 @@ void osc_cannon_pscw(float* A, float* B, float* C,
     // Send and recv A and B from neighborhing processes in proc grid
     get_rotation_procs(rank_row, rank_col, sq_num_procs, 
     	&send_proc_A, &send_proc_B, &recv_proc_A, &recv_proc_B);
-	//printf("aftrotate: rank %d, send_proc_A %d, send_proc_B %d\n", rank, send_proc_A, send_proc_B);
 
     for (int i = 1; i < sq_num_procs; i++)
     {
@@ -304,16 +298,6 @@ int main(int argc, char* argv[]) {
 	osc_cannon_pscw(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
 	endtime = MPI_Wtime();
 	if (rank == 0) printf("one-sided cannon time (pscw): %f\n", endtime-starttime);
-	
-	/*double global_sum = 0;
-	double local_sum = 0;
-	for (int i = 0; i < size; i++) {
-		local_sum += h_C[i];
-	}
-	
-	MPI_Reduce(&local_sum, &global_sum, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
-	if (rank == 0) printf("sum: %f\n", global_sum);
-	*/
 	
    	delete[] h_A;
    	delete[] h_B;
