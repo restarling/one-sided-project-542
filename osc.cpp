@@ -262,8 +262,8 @@ int main(int argc, char* argv[]) {
     int rank, num_procs;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
-
-    int N = 256;
+    
+    int N = atoi(argv[1]);
     int sq_num_procs = sqrt(num_procs);
     int rank_row = rank / sq_num_procs;
     int rank_col = rank % sq_num_procs;
@@ -283,22 +283,34 @@ int main(int argc, char* argv[]) {
     }
 	
 	double starttime, endtime;
-	
-	starttime = MPI_Wtime();
-	nonblocking_cannon(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
-	endtime = MPI_Wtime();
-	if (rank == 0) printf("nonblocking cannon time: %f\n", endtime-starttime);
-		
-	starttime = MPI_Wtime();
-	osc_cannon_fence(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
-	endtime = MPI_Wtime();
-	if (rank == 0) printf("one-sided cannon time (fence): %f\n", endtime-starttime);
-		
-	starttime = MPI_Wtime();
-	osc_cannon_pscw(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
-	endtime = MPI_Wtime();
-	if (rank == 0) printf("one-sided cannon time (pscw): %f\n", endtime-starttime);
-	
+
+	for (int i = 0; i < 10; i++) {
+		if (rank == 0) starttime = MPI_Wtime();
+		nonblocking_cannon(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
+		if (rank == 0) {
+			endtime = MPI_Wtime();
+			printf("nonblocking: %f, num_procs: %d, size: %d\n", endtime-starttime, num_procs, size);
+		}
+	}
+
+	for (int i = 0; i < 10; i++) {	
+		if (rank == 0) starttime = MPI_Wtime();
+		osc_cannon_fence(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
+		if (rank == 0) {
+			endtime = MPI_Wtime();
+			printf("fence: %f, num_procs: %d, size: %d\n", endtime-starttime, num_procs, size);
+		}
+	}
+
+	for (int i = 0; i < 10; i++) {
+		if (rank == 0) starttime = MPI_Wtime();
+		osc_cannon_pscw(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
+		if (rank == 0) {
+			endtime = MPI_Wtime();
+			printf("pscw: %f, num_procs: %d, size: %d\n", endtime-starttime, num_procs, size);
+		}
+	}
+
    	delete[] h_A;
    	delete[] h_B;
    	delete[] h_C;
