@@ -284,13 +284,14 @@ int main(int argc, char* argv[]) {
     }
 	
 	double starttime, endtime;
-
+	
+	//if (rank == 0) printf("method,time,num_procs,N\n");
 	for (int i = 0; i < 10; i++) {
 		if (rank == 0) starttime = MPI_Wtime();
 		nonblocking_cannon(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
 		if (rank == 0) {
 			endtime = MPI_Wtime();
-			printf("nonblocking: %f, num_procs: %d, N: %d\n", endtime-starttime, num_procs, N);
+			printf("nonblocking,%f,%d,%d\n", endtime-starttime, num_procs, N);
 		}
 	}
 
@@ -299,7 +300,7 @@ int main(int argc, char* argv[]) {
 		osc_cannon_fence(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
 		if (rank == 0) {
 			endtime = MPI_Wtime();
-			printf("fence: %f, num_procs: %d, N: %d\n", endtime-starttime, num_procs, N);
+			printf("fence,%f,%d,%d\n", endtime-starttime, num_procs, N);
 		}
 	}
 
@@ -308,7 +309,7 @@ int main(int argc, char* argv[]) {
 		osc_cannon_pscw(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
 		if (rank == 0) {
 			endtime = MPI_Wtime();
-			printf("pscw: %f, num_procs: %d, N: %d\n", endtime-starttime, num_procs, N);
+			printf("pscw,%f,%d,%d\n", endtime-starttime, num_procs, N);
 		}
 	}
 
