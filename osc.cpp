@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstdio>
 #include <mpi.h>
+#include <cstdlib>
 
 void matmat(int n, float* A, float* B, float* C) {
     float val;
@@ -289,7 +290,7 @@ int main(int argc, char* argv[]) {
 		nonblocking_cannon(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
 		if (rank == 0) {
 			endtime = MPI_Wtime();
-			printf("nonblocking: %f, num_procs: %d, size: %d\n", endtime-starttime, num_procs, size);
+			printf("nonblocking: %f, num_procs: %d, N: %d\n", endtime-starttime, num_procs, N);
 		}
 	}
 
@@ -298,7 +299,7 @@ int main(int argc, char* argv[]) {
 		osc_cannon_fence(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
 		if (rank == 0) {
 			endtime = MPI_Wtime();
-			printf("fence: %f, num_procs: %d, size: %d\n", endtime-starttime, num_procs, size);
+			printf("fence: %f, num_procs: %d, N: %d\n", endtime-starttime, num_procs, N);
 		}
 	}
 
@@ -307,7 +308,7 @@ int main(int argc, char* argv[]) {
 		osc_cannon_pscw(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
 		if (rank == 0) {
 			endtime = MPI_Wtime();
-			printf("pscw: %f, num_procs: %d, size: %d\n", endtime-starttime, num_procs, size);
+			printf("pscw: %f, num_procs: %d, N: %d\n", endtime-starttime, num_procs, N);
 		}
 	}
 
