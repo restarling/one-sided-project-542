@@ -102,7 +102,7 @@ void osc_communicate_pscw(int send_proc, int size,
 }
 
 void nonblocking_cannon(float* A, float* B, float* C,
-        int n, int sq_num_procs, int rank_row, int rank_col) {
+        int n, int sq_num_procs, int rank_row, int rank_col, int N) {
 
     int rank, num_procs;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -153,7 +153,7 @@ void nonblocking_cannon(float* A, float* B, float* C,
 
 	if (rank == 0) {
 		endtime = MPI_Wtime();
-		printf("nonblocking,na,%f,%d,%d\n", endtime-starttime, num_procs, n*sq_num_procs);
+		printf("nonblocking,na,%f,%d,%d\n", endtime-starttime, num_procs, N);
 	}
 
     delete[] send_A;
@@ -162,8 +162,8 @@ void nonblocking_cannon(float* A, float* B, float* C,
     delete[] recv_B;
 }
 
-void osc_cannon_fence(float* A, float* B, float* C, int n, int sq_num_procs, int rank_row, int rank_col)
-{
+void osc_cannon_fence(float* A, float* B, float* C, int n, int sq_num_procs, int rank_row, int rank_col, int N) {
+
     int rank, num_procs;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
@@ -193,7 +193,7 @@ void osc_cannon_fence(float* A, float* B, float* C, int n, int sq_num_procs, int
 
 	if (rank == 0) {
 		endtime = MPI_Wtime();
-		printf("fence,window,%f,%d,%d\n", endtime-starttime, num_procs, n*sq_num_procs);
+		printf("fence,window,%f,%d,%d\n", endtime-starttime, num_procs, N);
 	}
 
 	// timing communication and matmat
@@ -223,7 +223,7 @@ void osc_cannon_fence(float* A, float* B, float* C, int n, int sq_num_procs, int
 
 	if (rank == 0) {
 		endtime = MPI_Wtime();
-		printf("fence,communication,%f,%d,%d\n", endtime-starttime, num_procs, n*sq_num_procs);
+		printf("fence,communication,%f,%d,%d\n", endtime-starttime, num_procs, N);
 	}
 	
     delete[] send_A;
@@ -234,9 +234,8 @@ void osc_cannon_fence(float* A, float* B, float* C, int n, int sq_num_procs, int
     MPI_Win_free(&win_col);
 }
 
-void osc_cannon_pscw(float* A, float* B, float* C,
-        int n, int sq_num_procs, int rank_row, int rank_col)
-{
+void osc_cannon_pscw(float* A, float* B, float* C, int n, int sq_num_procs, int rank_row, int rank_col, int N) {
+
     int rank, num_procs;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
@@ -272,7 +271,7 @@ void osc_cannon_pscw(float* A, float* B, float* C,
 
 	if (rank == 0) {
 		endtime = MPI_Wtime();
-		printf("pscw,window,%f,%d,%d\n", endtime-starttime, num_procs, n*sq_num_procs);
+		printf("pscw,window,%f,%d,%d\n", endtime-starttime, num_procs, N);
 	}
 
 	// timing communication and matmat
@@ -301,7 +300,7 @@ void osc_cannon_pscw(float* A, float* B, float* C,
 
 	if (rank == 0) {
 		endtime = MPI_Wtime();
-		printf("pscw,communication,%f,%d,%d\n", endtime-starttime, num_procs, n*sq_num_procs);
+		printf("pscw,communication,%f,%d,%d\n", endtime-starttime, num_procs, N);
 	}
 
     delete[] send_A;
@@ -343,9 +342,9 @@ int main(int argc, char* argv[]) {
 	int iter = 10;
 	
 	for (int i = 0; i < iter; i++) {
-		nonblocking_cannon(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
-		osc_cannon_fence(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
-		osc_cannon_pscw(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col);
+		nonblocking_cannon(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col, N);
+		osc_cannon_fence(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col, N);
+		osc_cannon_pscw(h_A, h_B, h_C, n, sq_num_procs, rank_row, rank_col, N);
 	}
 
    	delete[] h_A;
