@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#SBATCH --partition=normal
 #SBATCH --ntasks=16
 #SBATCH --job-name 16procs
 

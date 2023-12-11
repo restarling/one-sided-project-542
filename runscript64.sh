@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#SBATCH --partition=normal
 #SBATCH --ntasks=64
 #SBATCH --job-name 64procs
 

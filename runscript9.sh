@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#SBATCH --partition=normal
 #SBATCH --ntasks=9
 #SBATCH --job-name 9procs
 

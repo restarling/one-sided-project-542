@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#SBATCH --partition=normal
 #SBATCH --ntasks=1
 #SBATCH --job-name 1procs
 

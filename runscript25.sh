@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#SBATCH --partition=normal
 #SBATCH --ntasks=25
 #SBATCH --job-name 25procs
 

@@ -153,7 +153,7 @@ void nonblocking_cannon(float* A, float* B, float* C,
 
 	if (rank == 0) {
 		endtime = MPI_Wtime();
-		printf("nonblocking,na,%f,%d,%d\n", endtime-starttime, num_procs, N);
+		printf("nonblocking,communication,%f,%d,%d\n", endtime-starttime, num_procs, N);
 	}
 
     delete[] send_A;
